@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchRoute, bboxFromCoords, project, type LngLat, type RouteResult } from "@/lib/routing";
+import {
+  fetchRoute,
+  fetchMapContext,
+  bboxFromCoords,
+  makeProjector,
+  type LngLat,
+  type RouteResult,
+  type StreetWay,
+  type AreaFeature,
+  type BBox,
+} from "@/lib/routing";
 import { safetyStore, type DangerZone } from "@/lib/safety-store";
 import { Loader2, MapPin, Navigation } from "lucide-react";
 
@@ -11,20 +21,17 @@ type Props = {
   alert?: boolean;
 };
 
-// Hand-drawn decorative streets that frame the real route, so the map
-// looks rich even before/while OSRM responds.
-const decorStreets = [
-  "M 0 200 Q 250 220 500 180 T 1000 220",
-  "M 0 420 Q 300 380 600 440 T 1000 400",
-  "M 0 640 Q 200 680 500 620 T 1000 660",
-  "M 0 860 Q 350 820 700 880 T 1000 840",
-  "M 200 0 Q 240 250 180 500 T 220 1000",
-  "M 480 0 Q 520 300 460 600 T 500 1000",
-  "M 760 0 Q 800 280 740 540 T 780 1000",
-];
+const STREET_STYLE: Record<StreetWay["kind"], { casing: number; fill: number; color: string }> = {
+  primary: { casing: 14, fill: 10, color: "#fff5d6" },
+  secondary: { casing: 11, fill: 8, color: "#ffffff" },
+  residential: { casing: 8, fill: 6, color: "#ffffff" },
+  service: { casing: 5, fill: 3.5, color: "#ffffff" },
+  footway: { casing: 3, fill: 2, color: "#f4d8c0" },
+};
 
 export function StreetMap({ start, end, onRouteReady, progress = 0, alert = false }: Props) {
   const [route, setRoute] = useState<RouteResult | null>(null);
+  const [context, setContext] = useState<{ streets: StreetWay[]; areas: AreaFeature[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const zones = safetyStore.getState().zones;
@@ -32,16 +39,24 @@ export function StreetMap({ start, end, onRouteReady, progress = 0, alert = fals
   useEffect(() => {
     if (!start || !end) {
       setRoute(null);
+      setContext(null);
       return;
     }
     let cancelled = false;
     setLoading(true);
     setError(null);
     fetchRoute(start, end)
-      .then((r) => {
+      .then(async (r) => {
         if (cancelled) return;
         setRoute(r);
         onRouteReady?.(r);
+        const bbox = bboxFromCoords(r.coords);
+        try {
+          const ctx = await fetchMapContext(bbox);
+          if (!cancelled) setContext(ctx);
+        } catch {
+          // context is optional; route still renders
+        }
       })
       .catch((e) => !cancelled && setError(e.message))
       .finally(() => !cancelled && setLoading(false));
@@ -50,44 +65,66 @@ export function StreetMap({ start, end, onRouteReady, progress = 0, alert = fals
     };
   }, [start?.[0], start?.[1], end?.[0], end?.[1]]);
 
-  const projected = useMemo(() => {
+  const projector = useMemo(() => {
     if (!route) return null;
     const bbox = bboxFromCoords(route.coords);
-    const pts = route.coords.map((c) => project(c, bbox));
-    return { pts, bbox };
+    return { ...makeProjector(bbox, 1000), bbox };
   }, [route]);
 
-  // Position of the moving dot along the path
+  const projectedRoute = useMemo(() => {
+    if (!projector || !route) return null;
+    return route.coords.map((c) => projector.project(c));
+  }, [projector, route]);
+
   const movingPoint = useMemo(() => {
-    if (!projected) return null;
-    const { pts } = projected;
-    if (pts.length < 2) return pts[0];
-    const idx = Math.min(pts.length - 1, Math.floor(progress * (pts.length - 1)));
-    return pts[idx];
-  }, [projected, progress]);
+    if (!projectedRoute || projectedRoute.length === 0) return null;
+    if (projectedRoute.length < 2) return projectedRoute[0];
+    const idx = Math.min(projectedRoute.length - 1, Math.floor(progress * (projectedRoute.length - 1)));
+    return projectedRoute[idx];
+  }, [projectedRoute, progress]);
 
   const pathD = useMemo(() => {
-    if (!projected) return "";
-    return projected.pts.reduce((acc, p, i) => acc + (i === 0 ? `M ${p.x} ${p.y}` : ` L ${p.x} ${p.y}`), "");
-  }, [projected]);
+    if (!projectedRoute) return "";
+    return projectedRoute.reduce(
+      (acc, p, i) => acc + (i === 0 ? `M ${p.x.toFixed(1)} ${p.y.toFixed(1)}` : ` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`),
+      "",
+    );
+  }, [projectedRoute]);
+
+  const projectedStreets = useMemo(() => {
+    if (!projector || !context) return [];
+    return context.streets.map((s) => ({
+      id: s.id,
+      kind: s.kind,
+      d: pointsToPath(s.coords.map((c) => projector.project(c))),
+    }));
+  }, [projector, context]);
+
+  const projectedAreas = useMemo(() => {
+    if (!projector || !context) return [];
+    return context.areas.map((a) => ({
+      id: a.id,
+      kind: a.kind,
+      d: pointsToClosedPath(a.coords.map((c) => projector.project(c))),
+    }));
+  }, [projector, context]);
+
+  const zoneViewBoxScale = 1; // zones are mock points already in 0..1000
 
   return (
     <div className={`relative w-full h-full overflow-hidden rounded-3xl border border-border/60 ${alert ? "ring-4 ring-danger/40" : ""}`}>
       <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" className="w-full h-full">
         <defs>
-          <radialGradient id="mapBg" cx="50%" cy="40%">
-            <stop offset="0%" stopColor="oklch(0.98 0.02 30)" />
-            <stop offset="100%" stopColor="oklch(0.93 0.04 15)" />
-          </radialGradient>
+          <linearGradient id="mapBg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fdf6ee" />
+            <stop offset="100%" stopColor="#f7e9dc" />
+          </linearGradient>
           <linearGradient id="routeGrad" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="oklch(0.62 0.22 5)" />
             <stop offset="100%" stopColor="oklch(0.55 0.24 350)" />
           </linearGradient>
-          <pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1" fill="oklch(0.7 0.05 10 / 0.25)" />
-          </pattern>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="6" result="blur" />
+          <filter id="routeGlow">
+            <feGaussianBlur stdDeviation="4" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -97,62 +134,93 @@ export function StreetMap({ start, end, onRouteReady, progress = 0, alert = fals
 
         {/* Background */}
         <rect width="1000" height="1000" fill="url(#mapBg)" />
-        <rect width="1000" height="1000" fill="url(#dots)" />
 
-        {/* Decorative parks */}
-        <ellipse cx="150" cy="500" rx="110" ry="80" fill="var(--map-park)" opacity="0.55" />
-        <ellipse cx="850" cy="700" rx="130" ry="95" fill="var(--map-park)" opacity="0.55" />
-        <ellipse cx="600" cy="200" rx="80" ry="60" fill="var(--map-park)" opacity="0.45" />
+        {/* Real parks / water */}
+        {projectedAreas.map((a) => (
+          <path
+            key={a.id}
+            d={a.d}
+            fill={a.kind === "water" ? "#cfe6f0" : "#dfe9c8"}
+            opacity={a.kind === "water" ? 0.85 : 0.7}
+          />
+        ))}
 
-        {/* Decorative streets (rendered always for richness) */}
-        {decorStreets.map((d, i) => (
-          <g key={i}>
-            <path d={d} stroke="oklch(0.88 0.02 15)" strokeWidth="22" fill="none" strokeLinecap="round" />
-            <path d={d} stroke="white" strokeWidth="14" fill="none" strokeLinecap="round" />
-            <path d={d} stroke="oklch(0.92 0.03 20)" strokeWidth="0.6" strokeDasharray="6 8" fill="none" />
+        {/* Real streets — casing first, then fill, ordered by hierarchy */}
+        {(["service", "footway", "residential", "secondary", "primary"] as const).map((kind) => (
+          <g key={`casing-${kind}`}>
+            {projectedStreets
+              .filter((s) => s.kind === kind)
+              .map((s) => (
+                <path
+                  key={s.id}
+                  d={s.d}
+                  stroke="#e8c9b0"
+                  strokeWidth={STREET_STYLE[kind].casing}
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              ))}
+          </g>
+        ))}
+        {(["service", "footway", "residential", "secondary", "primary"] as const).map((kind) => (
+          <g key={`fill-${kind}`}>
+            {projectedStreets
+              .filter((s) => s.kind === kind)
+              .map((s) => (
+                <path
+                  key={s.id}
+                  d={s.d}
+                  stroke={STREET_STYLE[kind].color}
+                  strokeWidth={STREET_STYLE[kind].fill}
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeDasharray={kind === "footway" ? "4 4" : undefined}
+                />
+              ))}
           </g>
         ))}
 
-        {/* Danger / caution zones */}
+        {/* Danger / caution zones (mock, in 0..1000 space) */}
         {zones.map((z) => (
-          <ZoneMarker key={z.id} zone={z} />
+          <ZoneMarker key={z.id} zone={z} scale={zoneViewBoxScale} />
         ))}
 
         {/* Route */}
         {pathD && (
           <>
-            <path d={pathD} stroke="oklch(0.55 0.2 5 / 0.18)" strokeWidth="22" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={pathD} stroke="white" strokeWidth="14" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
             <path
               d={pathD}
               stroke="url(#routeGrad)"
-              strokeWidth="10"
+              strokeWidth="9"
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
-              filter="url(#glow)"
+              filter="url(#routeGlow)"
               style={{
                 strokeDasharray: 4000,
                 strokeDashoffset: 4000,
                 animation: "draw-route 2.2s var(--ease-soft) forwards",
               }}
             />
-            <path d={pathD} stroke="white" strokeWidth="2" strokeDasharray="4 8" fill="none" opacity="0.7" />
           </>
         )}
 
         {/* Start + End markers */}
-        {projected && (
+        {projectedRoute && projectedRoute.length > 0 && (
           <>
-            <Marker x={projected.pts[0].x} y={projected.pts[0].y} color="oklch(0.7 0.12 160)" label="Início" />
-            <Marker x={projected.pts.at(-1)!.x} y={projected.pts.at(-1)!.y} color="oklch(0.6 0.22 5)" label="Destino" />
+            <Marker x={projectedRoute[0].x} y={projectedRoute[0].y} color="oklch(0.7 0.12 160)" label="Início" />
+            <Marker x={projectedRoute.at(-1)!.x} y={projectedRoute.at(-1)!.y} color="oklch(0.6 0.22 5)" label="Destino" />
           </>
         )}
 
         {/* Moving user dot */}
         {movingPoint && (
           <g>
-            <circle cx={movingPoint.x} cy={movingPoint.y} r="22" fill="oklch(0.62 0.18 5 / 0.25)" className="animate-pulse-ring" style={{ transformOrigin: `${movingPoint.x}px ${movingPoint.y}px` } as React.CSSProperties} />
-            <circle cx={movingPoint.x} cy={movingPoint.y} r="14" fill="white" stroke="oklch(0.62 0.18 5)" strokeWidth="3" />
+            <circle cx={movingPoint.x} cy={movingPoint.y} r="22" fill="oklch(0.62 0.18 5 / 0.25)" className="animate-pulse-ring" />
+            <circle cx={movingPoint.x} cy={movingPoint.y} r="13" fill="white" stroke="oklch(0.62 0.18 5)" strokeWidth="3" />
             <circle cx={movingPoint.x} cy={movingPoint.y} r="6" fill="oklch(0.62 0.18 5)" />
           </g>
         )}
@@ -183,14 +251,26 @@ export function StreetMap({ start, end, onRouteReady, progress = 0, alert = fals
   );
 }
 
-function ZoneMarker({ zone }: { zone: DangerZone }) {
+function pointsToPath(pts: { x: number; y: number }[]) {
+  if (!pts.length) return "";
+  return pts.reduce(
+    (acc, p, i) => acc + (i === 0 ? `M ${p.x.toFixed(1)} ${p.y.toFixed(1)}` : ` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`),
+    "",
+  );
+}
+
+function pointsToClosedPath(pts: { x: number; y: number }[]) {
+  return pointsToPath(pts) + " Z";
+}
+
+function ZoneMarker({ zone, scale }: { zone: DangerZone; scale: number }) {
   const color = zone.level === "danger" ? "oklch(0.6 0.22 25)" : "oklch(0.78 0.16 70)";
   return (
     <g>
-      <circle cx={zone.x} cy={zone.y} r={zone.radius} fill={color} opacity="0.12" />
-      <circle cx={zone.x} cy={zone.y} r={zone.radius * 0.6} fill={color} opacity="0.18" />
-      <circle cx={zone.x} cy={zone.y} r="10" fill={color} />
-      <circle cx={zone.x} cy={zone.y} r="4" fill="white" />
+      <circle cx={zone.x * scale} cy={zone.y * scale} r={zone.radius} fill={color} opacity="0.12" />
+      <circle cx={zone.x * scale} cy={zone.y * scale} r={zone.radius * 0.6} fill={color} opacity="0.18" />
+      <circle cx={zone.x * scale} cy={zone.y * scale} r="10" fill={color} />
+      <circle cx={zone.x * scale} cy={zone.y * scale} r="4" fill="white" />
     </g>
   );
 }
@@ -198,9 +278,9 @@ function ZoneMarker({ zone }: { zone: DangerZone }) {
 function Marker({ x, y, color, label }: { x: number; y: number; color: string; label: string }) {
   return (
     <g>
-      <circle cx={x} cy={y} r="18" fill="white" stroke={color} strokeWidth="4" />
-      <circle cx={x} cy={y} r="7" fill={color} />
-      <text x={x} y={y - 28} textAnchor="middle" fontSize="18" fontWeight="600" fill="oklch(0.32 0.08 350)" style={{ paintOrder: "stroke", stroke: "white", strokeWidth: 4 }}>
+      <circle cx={x} cy={y} r="16" fill="white" stroke={color} strokeWidth="4" />
+      <circle cx={x} cy={y} r="6" fill={color} />
+      <text x={x} y={y - 24} textAnchor="middle" fontSize="16" fontWeight="600" fill="oklch(0.32 0.08 350)" style={{ paintOrder: "stroke", stroke: "white", strokeWidth: 4 } as React.CSSProperties}>
         {label}
       </text>
     </g>
