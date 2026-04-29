@@ -16,9 +16,9 @@ function HomePage() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero" />
-        <div className="absolute -top-32 -right-20 h-80 w-80 rounded-full bg-rose-soft/40 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-primary/15 blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-hero pointer-events-none" />
+        <div className="absolute -top-32 -right-20 h-80 w-80 rounded-full bg-rose-soft/40 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 h-80 w-80 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
 
         <div className="relative mx-auto max-w-7xl px-4 md:px-6 py-16 md:py-28 grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
           <div>
@@ -121,7 +121,7 @@ function HomePage() {
       {/* CTA */}
       <section className="mx-auto max-w-7xl px-4 md:px-6 pb-20">
         <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-primary p-10 md:p-16 text-center shadow-glow">
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, white 0px, transparent 50%), radial-gradient(circle at 80% 70%, white 0px, transparent 50%)" }} />
+          <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, white 0px, transparent 50%), radial-gradient(circle at 80% 70%, white 0px, transparent 50%)" }} />
           <Heart className="h-10 w-10 text-primary-foreground mx-auto" />
           <h2 className="mt-4 font-display text-4xl md:text-5xl text-primary-foreground">Você não está sozinha.</h2>
           <p className="mt-4 text-primary-foreground/85 max-w-xl mx-auto">
