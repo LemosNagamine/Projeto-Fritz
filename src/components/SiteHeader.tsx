@@ -23,7 +23,7 @@ export function SiteHeader() {
             </div>
           </div>
           <div className="flex flex-col leading-none">
-            <span className="font-display text-lg text-plum">Acalanto</span>
+            <span className="font-display text-lg text-plum">Frida</span>
             <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">caminhe segura</span>
           </div>
         </Link>
