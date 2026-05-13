@@ -26,6 +26,7 @@ export type EmergencyContact = {
   name: string;
   phone: string;
   relation: string;
+  notify: boolean;
 };
 
 const initialComments: StreetComment[] = [
@@ -71,8 +72,8 @@ const initialZones: DangerZone[] = [
 ];
 
 const initialContacts: EmergencyContact[] = [
-  { id: "e1", name: "Polícia Militar", phone: "190", relation: "Emergência" },
-  { id: "e2", name: "Delegacia da Mulher", phone: "180", relation: "Apoio especializado" },
+  { id: "e1", name: "Polícia Militar", phone: "190", relation: "Emergência", notify: true },
+  { id: "e2", name: "Delegacia da Mulher", phone: "180", relation: "Apoio especializado", notify: true },
 ];
 
 type State = {
@@ -111,6 +112,10 @@ export const safetyStore = {
   },
   removeContact(id: string) {
     state.contacts = state.contacts.filter((c) => c.id !== id);
+    notify();
+  },
+  setContactNotify(id: string, notifyFlag: boolean) {
+    state.contacts = state.contacts.map((c) => (c.id === id ? { ...c, notify: notifyFlag } : c));
     notify();
   },
   setUserName(name: string) {

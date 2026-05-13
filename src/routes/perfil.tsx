@@ -6,7 +6,7 @@ import { User, Phone, Plus, Trash2, Heart, Shield } from "lucide-react";
 export const Route = createFileRoute("/perfil")({
   head: () => ({
     meta: [
-      { title: "Meu perfil — Acalanto" },
+      { title: "Meu perfil — Frida" },
       { name: "description", content: "Configure seus contatos de emergência e preferências de proteção." },
     ],
   }),
@@ -28,7 +28,7 @@ function ProfilePage() {
   function addContact(e: React.FormEvent) {
     e.preventDefault();
     if (!cName || !cPhone) return;
-    safetyStore.addContact({ name: cName, phone: cPhone, relation: cRel || "Contato" });
+    safetyStore.addContact({ name: cName, phone: cPhone, relation: cRel || "Contato", notify: true });
     setCName(""); setCPhone(""); setCRel("");
   }
 
@@ -59,7 +59,7 @@ function ProfilePage() {
             <h2 className="font-display text-2xl text-plum">Contatos de emergência</h2>
             <span className="text-xs rounded-full bg-blush px-3 py-1 text-primary font-semibold">{contacts.length}</span>
           </div>
-          <p className="text-sm text-muted-foreground">Quem ligamos quando você precisa de ajuda.</p>
+          <p className="text-sm text-muted-foreground">Quem ligamos quando você precisa de ajuda. Ative o sino para permitir alertas automáticos (ex.: modo Uber).</p>
 
           <ul className="mt-5 space-y-2">
             {contacts.map((c) => (
@@ -71,6 +71,16 @@ function ProfilePage() {
                   <p className="font-semibold text-foreground">{c.name}</p>
                   <p className="text-xs text-muted-foreground">{c.relation} · <a href={`tel:${c.phone}`} className="text-primary hover:underline">{c.phone}</a></p>
                 </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={c.notify}
+                  onClick={() => safetyStore.setContactNotify(c.id, !c.notify)}
+                  title={c.notify ? "Receberá alertas" : "Não receberá alertas"}
+                  className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200 ${c.notify ? "bg-primary" : "bg-muted"}`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-soft transition-transform duration-200 ${c.notify ? "translate-x-5" : "translate-x-0"}`} />
+                </button>
                 <button
                   onClick={() => safetyStore.removeContact(c.id)}
                   className="h-9 w-9 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
@@ -123,14 +133,22 @@ function ProfilePage() {
 
 function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className="flex items-center justify-between py-3 border-b border-border/50 last:border-0 cursor-pointer">
-      <span className="text-sm text-foreground">{label}</span>
+    <label className="flex items-center justify-between gap-4 py-3 border-b border-border/50 last:border-0 cursor-pointer">
+      <span className="text-sm text-foreground flex-1 min-w-0">{label}</span>
       <button
         type="button"
+        role="switch"
+        aria-checked={value}
         onClick={() => onChange(!value)}
-        className={`relative h-6 w-11 rounded-full transition-colors ${value ? "bg-primary" : "bg-muted"}`}
+        className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+          value ? "bg-primary" : "bg-muted"
+        }`}
       >
-        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${value ? "translate-x-5" : "translate-x-0.5"}`} />
+        <span
+          className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-soft transition-transform duration-200 ${
+            value ? "translate-x-5" : "translate-x-0"
+          }`}
+        />
       </button>
     </label>
   );

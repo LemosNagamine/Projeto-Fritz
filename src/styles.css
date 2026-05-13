@@ -54,63 +54,63 @@
 :root {
   --radius: 1rem;
 
-  /* Base — cream/blush palette */
-  --background: oklch(0.985 0.012 20);
-  --foreground: oklch(0.25 0.04 350);
+  /* Base — white with purple tint */
+  --background: oklch(0.99 0.006 320);
+  --foreground: oklch(0.24 0.06 310);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.25 0.04 350);
+  --card-foreground: oklch(0.24 0.06 310);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.04 350);
+  --popover-foreground: oklch(0.24 0.06 310);
 
-  /* Primary — deep rose */
-  --primary: oklch(0.62 0.18 5);
-  --primary-foreground: oklch(0.99 0.005 20);
+  /* Primary — vivid purple */
+  --primary: oklch(0.55 0.22 305);
+  --primary-foreground: oklch(0.99 0.005 320);
 
-  /* Secondary — soft blush */
-  --secondary: oklch(0.95 0.025 15);
-  --secondary-foreground: oklch(0.35 0.08 350);
+  /* Secondary — soft pink */
+  --secondary: oklch(0.95 0.035 340);
+  --secondary-foreground: oklch(0.35 0.1 310);
 
-  --muted: oklch(0.96 0.012 20);
-  --muted-foreground: oklch(0.5 0.04 350);
+  --muted: oklch(0.96 0.015 320);
+  --muted-foreground: oklch(0.5 0.05 310);
 
-  --accent: oklch(0.92 0.05 10);
-  --accent-foreground: oklch(0.3 0.08 350);
+  --accent: oklch(0.92 0.06 335);
+  --accent-foreground: oklch(0.3 0.1 310);
 
   --destructive: oklch(0.58 0.22 25);
-  --destructive-foreground: oklch(0.99 0.005 20);
+  --destructive-foreground: oklch(0.99 0.005 320);
 
-  --border: oklch(0.92 0.02 15);
-  --input: oklch(0.92 0.02 15);
-  --ring: oklch(0.62 0.18 5);
+  --border: oklch(0.92 0.025 320);
+  --input: oklch(0.92 0.025 320);
+  --ring: oklch(0.55 0.22 305);
 
-  /* Custom brand palette */
-  --rose-soft: oklch(0.88 0.06 5);
-  --rose-deep: oklch(0.55 0.2 5);
-  --blush: oklch(0.94 0.04 15);
-  --cream: oklch(0.98 0.018 60);
-  --plum: oklch(0.32 0.08 350);
+  /* Custom brand palette — purple / pink / white */
+  --rose-soft: oklch(0.9 0.06 340);
+  --rose-deep: oklch(0.55 0.22 340);
+  --blush: oklch(0.96 0.04 335);
+  --cream: oklch(0.99 0.01 320);
+  --plum: oklch(0.32 0.12 305);
 
   --warning: oklch(0.78 0.16 70);
   --safe: oklch(0.7 0.12 160);
   --danger: oklch(0.6 0.22 25);
 
   /* Map tones */
-  --map-bg: oklch(0.97 0.018 25);
+  --map-bg: oklch(0.97 0.015 320);
   --map-street: oklch(1 0 0);
-  --map-street-soft: oklch(0.93 0.02 20);
+  --map-street-soft: oklch(0.93 0.02 320);
   --map-park: oklch(0.92 0.05 150);
 
   /* Gradients */
-  --gradient-warm: linear-gradient(135deg, oklch(0.94 0.04 15), oklch(0.88 0.07 5));
-  --gradient-hero: linear-gradient(160deg, oklch(0.98 0.018 60) 0%, oklch(0.92 0.06 10) 60%, oklch(0.85 0.1 5) 100%);
-  --gradient-primary: linear-gradient(135deg, oklch(0.62 0.18 5), oklch(0.55 0.2 350));
+  --gradient-warm: linear-gradient(135deg, oklch(0.96 0.04 335), oklch(0.9 0.08 320));
+  --gradient-hero: linear-gradient(160deg, oklch(0.99 0.01 320) 0%, oklch(0.92 0.06 335) 55%, oklch(0.82 0.14 305) 100%);
+  --gradient-primary: linear-gradient(135deg, oklch(0.55 0.22 305), oklch(0.65 0.2 340));
   --gradient-danger: linear-gradient(135deg, oklch(0.65 0.22 20), oklch(0.55 0.24 5));
 
   /* Shadows */
-  --shadow-soft: 0 4px 20px -8px oklch(0.55 0.2 5 / 0.15);
-  --shadow-glow: 0 8px 40px -12px oklch(0.62 0.18 5 / 0.35);
-  --shadow-card: 0 2px 12px -4px oklch(0.32 0.08 350 / 0.08);
+  --shadow-soft: 0 4px 20px -8px oklch(0.55 0.22 305 / 0.18);
+  --shadow-glow: 0 8px 40px -12px oklch(0.55 0.22 305 / 0.4);
+  --shadow-card: 0 2px 12px -4px oklch(0.32 0.12 305 / 0.1);
 
   /* Motion */
   --ease-soft: cubic-bezier(0.32, 0.72, 0.24, 1);
@@ -130,8 +130,8 @@
     background: var(--color-background);
     color: var(--color-foreground);
     background-image:
-      radial-gradient(at 8% 0%, oklch(0.94 0.06 10 / 0.6) 0px, transparent 50%),
-      radial-gradient(at 95% 100%, oklch(0.92 0.05 350 / 0.4) 0px, transparent 50%);
+      radial-gradient(at 8% 0%, oklch(0.92 0.08 305 / 0.55) 0px, transparent 50%),
+      radial-gradient(at 95% 100%, oklch(0.92 0.07 340 / 0.45) 0px, transparent 50%);
     background-attachment: fixed;
     min-height: 100vh;
   }

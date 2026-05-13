@@ -4,7 +4,7 @@ import { Heart, Sparkles, Users, Shield, ArrowRight } from "lucide-react";
 export const Route = createFileRoute("/sobre")({
   head: () => ({
     meta: [
-      { title: "Sobre o Acalanto" },
+      { title: "Sobre o Frida" },
       { name: "description", content: "Conheça a história e os valores por trás da plataforma." },
     ],
   }),
@@ -34,7 +34,7 @@ function AboutPage() {
           Nasceu de um<br /><span className="italic text-primary">"me avisa quando chegar".</span>
         </h1>
         <p className="mt-6 text-lg text-foreground/75 leading-relaxed">
-          Acalanto começou quando uma de nós percebeu que mandar mensagens dizendo "cheguei" para amigas
+          Frida começou quando uma de nós percebeu que mandar mensagens dizendo "cheguei" para amigas
           era o gesto mais comum entre mulheres. E também o mais inseguro — porque ninguém percebe quando a
           mensagem não chega. Decidimos transformar esse pequeno ritual em uma camada de cuidado real.
         </p>

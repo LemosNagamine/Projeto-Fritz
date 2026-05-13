@@ -28,10 +28,10 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Acalanto — caminhe segura" },
+      { title: "Frida — caminhe segura" },
       { name: "description", content: "Plataforma de segurança para mulheres com rotas inteligentes, alertas em zonas perigosas e check-in obrigatório." },
       { name: "theme-color", content: "#e8b8c4" },
-      { property: "og:title", content: "Acalanto — caminhe segura" },
+      { property: "og:title", content: "Frida — caminhe segura" },
       { property: "og:description", content: "Caminhe com confiança: rotas seguras, alertas e comunidade." },
       { property: "og:type", content: "website" },
     ],

@@ -6,7 +6,7 @@ import { MessageCircle, Send, Shield, AlertTriangle, AlertCircle, Search } from 
 export const Route = createFileRoute("/comentarios")({
   head: () => ({
     meta: [
-      { title: "Comentários da comunidade — Acalanto" },
+      { title: "Comentários da comunidade — Frida" },
       { name: "description", content: "Leia e compartilhe relatos sobre a segurança das ruas." },
     ],
   }),

@@ -4,7 +4,7 @@ import { Shield, MapPin, Users, Bell, ArrowRight, Heart, Sparkles } from "lucide
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Acalanto — caminhe segura" },
+      { title: "Frida — caminhe segura" },
       { name: "description", content: "Aplicativo de segurança para mulheres com rotas inteligentes, modo de proteção e check-in automático." },
     ],
   }),
@@ -30,7 +30,7 @@ function HomePage() {
               <span className="italic text-primary">com confiança.</span>
             </h1>
             <p className="mt-6 text-lg text-foreground/75 max-w-xl leading-relaxed">
-              Acalanto detecta áreas isoladas, calcula sua rota mais segura e fica de olho no seu trajeto.
+              Frida detecta áreas isoladas, calcula sua rota mais segura e fica de olho no seu trajeto.
               Se algo der errado, agimos por você.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">

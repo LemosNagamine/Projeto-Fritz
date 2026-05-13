@@ -4,8 +4,8 @@ import { MapPin, Shield, Vibrate, PhoneCall, Check, ArrowRight } from "lucide-re
 export const Route = createFileRoute("/como-funciona")({
   head: () => ({
     meta: [
-      { title: "Como funciona — Acalanto" },
-      { name: "description", content: "Entenda passo a passo como o Acalanto te protege durante o trajeto." },
+      { title: "Como funciona — Frida" },
+      { name: "description", content: "Entenda passo a passo como o Frida te protege durante o trajeto." },
     ],
   }),
   component: HowItWorksPage,
@@ -27,18 +27,27 @@ function HowItWorksPage() {
         <p className="mt-5 text-foreground/70">Uma camada invisível de cuidado que age automaticamente.</p>
       </header>
 
-      <div className="mt-16 space-y-8">
-        {steps.map((s, i) => (
-          <div key={s.n} className={`grid md:grid-cols-[180px_1fr] gap-5 items-center ${i % 2 === 1 ? "md:[&>div:first-child]:order-2" : ""}`}>
-            <div className="flex md:flex-col items-center md:items-start gap-4 md:gap-2">
-              <span className="font-display text-6xl md:text-7xl text-primary/20 leading-none">{s.n}</span>
-              <div className="h-14 w-14 md:h-16 md:w-16 rounded-3xl bg-gradient-warm flex items-center justify-center text-primary shadow-soft">
-                <s.icon className="h-6 w-6" />
+      <div className="mt-12 md:mt-16 space-y-5 md:space-y-6">
+        {steps.map((s) => (
+          <div
+            key={s.n}
+            className="relative rounded-3xl bg-card border border-border/60 p-5 sm:p-6 md:p-8 shadow-card overflow-hidden"
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -top-4 -right-2 sm:top-2 sm:right-4 font-display text-7xl sm:text-8xl text-primary/10 leading-none select-none"
+            >
+              {s.n}
+            </span>
+            <div className="relative flex items-start gap-4">
+              <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-2xl bg-gradient-warm flex items-center justify-center text-primary shadow-soft">
+                <s.icon className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-            </div>
-            <div className="rounded-3xl bg-card border border-border/60 p-6 md:p-8 shadow-card">
-              <h2 className="font-display text-2xl text-plum">{s.title}</h2>
-              <p className="mt-2 text-foreground/75 leading-relaxed">{s.desc}</p>
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-semibold tracking-widest text-primary">PASSO {s.n}</span>
+                <h2 className="mt-1 font-display text-xl sm:text-2xl text-plum">{s.title}</h2>
+                <p className="mt-2 text-sm sm:text-base text-foreground/75 leading-relaxed">{s.desc}</p>
+              </div>
             </div>
           </div>
         ))}
