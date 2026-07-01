@@ -1,0 +1,1 @@
+import{c as e}from"./index-DVArNNiD.js";const c=[["path",{d:"M20 6 9 17l-5-5",key:"1gmf2c"}]],a=e("check",c);const t=[["path",{d:"m2 8 2 2-2 2 2 2-2 2",key:"sv1b1"}],["path",{d:"m22 8-2 2 2 2-2 2 2 2",key:"101i4y"}],["rect",{width:"8",height:"14",x:"8",y:"5",rx:"1",key:"1oyrl4"}]],i=e("vibrate",t);export{a as C,i as V};
